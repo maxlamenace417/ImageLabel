@@ -1,0 +1,2 @@
+INDEX VERSION 1.130+D:\gitrepo\ImageLabel\.metadata\.plugins\org.eclipse.jdt.core
+2191220149.index
