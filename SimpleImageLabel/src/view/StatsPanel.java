@@ -77,5 +77,18 @@ public class StatsPanel extends JPanel {
 		ymaxPanel.add(this.ymax);
 		this.add(ymaxPanel);
 	}
+
+	public void reset() {
+		// TODO Auto-generated method stub
+		this.x.setText("0");
+		this.y.setText("0");
+		this.w.setText("0");
+		this.h.setText("0");
+		this.xmin.setText("0");
+		this.ymin.setText("0");
+		this.xmax.setText("0");		
+		this.ymax.setText("0");
+		this.repaint();
+	}
 	
 }

@@ -1,0 +1,93 @@
+package view;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.util.List;
+
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+
+import controller.DisplayController;
+import model.DisplayModel;
+import ui.MainFrame;
+
+public class DisplayView extends JPanel {
+	
+	public MainFrame parent;
+	protected DisplayModel model;
+	public DisplayController controller;
+	
+	public DisplayView(DisplayModel model,MainFrame parent) {
+		this.model = model;
+		this.setPreferredSize(new Dimension(this.model.image.getWidth(),this.model.image.getHeight()));
+		this.parent = parent;
+		this.controller = defaultController(model);
+		this.controller.setView(this);
+		this.addMouseListener(this.controller);
+		this.addMouseMotionListener(this.controller);
+		this.addKeyListener(this.controller);
+	}
+	
+	public void setModel(DisplayModel model)
+	{
+		this.model = model;
+		this.controller.setModel(model);
+	}
+	
+	public DisplayModel getModel()
+	{
+		return this.model;
+	}
+	
+	
+	final public DisplayController getController()
+	{
+		return this.controller;
+	}
+	
+	public DisplayController defaultController(DisplayModel model)
+	{
+		return new DisplayController(model);
+	}
+
+	public void paint(Graphics g){
+		super.paint(g);
+		Graphics2D g2 = (Graphics2D)g;
+		DisplayModel model = (DisplayModel)this.model;
+		g2.drawImage(model.image, 0, 0, null);
+		if(controller.getMode()==DisplayController.RECT_MODE){
+			g2.setColor(Color.RED);
+			g2.setStroke(new BasicStroke(3));
+			g2.drawRect(model.selection.x, model.selection.y, model.selection.width, model.selection.height);
+		}
+		if(controller.getMode()==DisplayController.POLYGON_MODE){
+			g2.setColor(Color.RED);
+			g2.setStroke(new BasicStroke(3));
+			g2.drawPolygon(getXPoints(model), getYPoints(model), model.polygon.size());
+		}
+	}
+
+	private int[] getYPoints(DisplayModel model) {
+		// TODO Auto-generated method stub
+		List<Point> poly = model.polygon;
+		int[] yPoints = new int[poly.size()];
+		for(int i=0;i<poly.size();i++){
+			yPoints[i] = (int) poly.get(i).y;
+		}
+		return yPoints;
+	}
+
+	private int[] getXPoints(DisplayModel model) {
+		// TODO Auto-generated method stub
+		List<Point> poly = model.polygon;
+		int[] xPoints = new int[poly.size()];
+		for(int i=0;i<poly.size();i++){
+			xPoints[i] = (int) poly.get(i).x;
+		}
+		return xPoints;
+	}
+}

@@ -2,9 +2,11 @@ package ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -24,6 +26,7 @@ import model.DisplayModel;
 import model.ModeleDynamiqueObject;
 import model.TableLineModel;
 import utils.Utils;
+import view.ChangeModeButton;
 import view.DisplayView;
 import view.ImageScrollPane;
 import view.LoadButtonView;
@@ -39,25 +42,26 @@ public class MainFrame extends JFrame {
 	public static int IMG_TYPE = BufferedImage.TYPE_INT_ARGB;
 	public static int FRAME_WIDTH = 1200;
 	public static int FRAME_HEIGHT = 800;
-	
+
 	public DisplayModel displayModel;
 	public DisplayView displayView;
 	public ImageScrollPane scrollPane;
-	
+
 	public JButton loadButton;
 	public JButton saveCSVButton;
 	private JButton loadCSVButton;
 	public String lastOpenedFile = "";
-	
+
 	public StatsPanel statsPanel;
-	
+
 	public PathPanel pathPanel;
-	
+
 	public JTable myJTable;
 	public ModeleDynamiqueObject myTableModel;
-	
+
 	public String img_path;
-	
+	public JButton changeModeButton;
+
 	public MainFrame()
 	{	
 		super("Image Label (©Maximilien THERRAS)");
@@ -71,18 +75,18 @@ public class MainFrame extends JFrame {
 		});
 
 		this.img_path ="";
-		
+
 		this.buildModel();
 		this.setPreferredSize(new Dimension(MainFrame.FRAME_WIDTH,MainFrame.FRAME_HEIGHT));
-	
+
 	}
-	
+
 	private BufferedImage getDefaultBufferedImage(){
 		BufferedImage image = new BufferedImage(MainFrame.IMG_WIDTH,MainFrame.IMG_HEIGHT,MainFrame.IMG_TYPE);
 		//image.getGraphics().fillRect(0, 0, image.getWidth(), image.getHeight());
 		return image;
 	}
-	
+
 	private void buildModel(){
 		BufferedImage image = getDefaultBufferedImage();
 		DisplayModel displayModel = new DisplayModel(image);
@@ -93,7 +97,7 @@ public class MainFrame extends JFrame {
 		this.scrollPane = new ImageScrollPane();
 		this.scrollPane.setPanel(displayView);
 		this.getContentPane().add(this.scrollPane,java.awt.BorderLayout.CENTER);
-		
+
 		JToolBar toolBar = new JToolBar();
 		this.loadButton = new LoadButtonView("Load Picture",this);
 		toolBar.add(loadButton);
@@ -101,69 +105,86 @@ public class MainFrame extends JFrame {
 		toolBar.add(saveCSVButton);
 		this.loadCSVButton = new LoadFromCSVButton("Load From CSV",this);
 		toolBar.add(loadCSVButton);
+		this.changeModeButton = new ChangeModeButton("Change Mode",this);
+		toolBar.add(changeModeButton);
 		this.getContentPane().add(toolBar,java.awt.BorderLayout.NORTH);
-		
+
 		this.pathPanel = new PathPanel();
 		JToolBar toolBar3 = new JToolBar();
 		toolBar3.add(this.pathPanel);
 		this.getContentPane().add(toolBar3,java.awt.BorderLayout.SOUTH);
-		
+
 		this.statsPanel = new StatsPanel();
 		JToolBar toolBar2 = new JToolBar();
 		toolBar2.add(this.statsPanel);
 		this.getContentPane().add(toolBar2,java.awt.BorderLayout.EAST);
-		
+
 		this.myTableModel = new ModeleDynamiqueObject();
 		this.myJTable = new JTable(myTableModel);
 		JScrollPane tableScroll = new JScrollPane(myJTable);
 		//tableScroll.setPreferredSize(new Dimension(1000,500));
 		JPanel boutons = new JPanel(); 
-        boutons.add(new JButton(new AddAction()));
-        boutons.add(new JButton(new RemoveAction()));
-        JToolBar toolBar4 = new JToolBar();
-        toolBar4.add(tableScroll);
-        toolBar4.add(boutons);
-        toolBar4.setLayout(new BoxLayout(toolBar4, BoxLayout.Y_AXIS));
-        this.getContentPane().add(toolBar4,java.awt.BorderLayout.WEST);
+		boutons.add(new JButton(new AddAction()));
+		boutons.add(new JButton(new RemoveAction()));
+		JToolBar toolBar4 = new JToolBar();
+		toolBar4.add(tableScroll);
+		toolBar4.add(boutons);
+		toolBar4.setLayout(new BoxLayout(toolBar4, BoxLayout.Y_AXIS));
+		this.getContentPane().add(toolBar4,java.awt.BorderLayout.WEST);
 	}
-	
+
 	private class AddAction extends AbstractAction {
-        private AddAction() {
-            super("Ajouter");
-        }
- 
-        public void actionPerformed(ActionEvent e) {
-        	String filePath = pathPanel.filePath.getText();
-        	String customFilePath = pathPanel.customFilePath.getText().trim();
-        	if(customFilePath.length()>0){
-        		filePath = customFilePath+"/"+pathPanel.fileName.getText()+"."+pathPanel.fileExtension.getText();
-        	}
-        	myTableModel.addTableLineModel(new TableLineModel(filePath,pathPanel.fileName.getText(),pathPanel.fileExtension.getText()
-        			,pathPanel.category.getText(),pathPanel.id.getText(),statsPanel.width.getText()
-        			,statsPanel.height.getText(),statsPanel.x.getText(),statsPanel.y.getText(),statsPanel.w.getText(),statsPanel.h.getText()
-        			,statsPanel.xmin.getText(),statsPanel.ymin.getText(),statsPanel.xmax.getText(),statsPanel.ymax.getText()));
-        }
-    }
- 
-    private class RemoveAction extends AbstractAction {
-        private RemoveAction() {
-            super("Supprimer");
-        }
- 
-        public void actionPerformed(ActionEvent e) {
-            int[] selection = myJTable.getSelectedRows();
- 
-            for(int i = selection.length - 1; i >= 0; i--){
-            	myTableModel.removeTableLineModel(selection[i]);
-            }
-        }
-    }
-	
+		private AddAction() {
+			super("Ajouter");
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			String filePath = pathPanel.filePath.getText();
+			String customFilePath = pathPanel.customFilePath.getText().trim();
+			if(customFilePath.length()>0){
+				filePath = customFilePath+"/"+pathPanel.fileName.getText()+"."+pathPanel.fileExtension.getText();
+			}
+			if(displayView.controller.getMode()==DisplayController.RECT_MODE){
+				myTableModel.addTableLineModel(new TableLineModel(filePath,pathPanel.fileName.getText(),pathPanel.fileExtension.getText()
+						,pathPanel.category.getText(),pathPanel.id.getText(),statsPanel.width.getText()
+						,statsPanel.height.getText(),statsPanel.x.getText(),statsPanel.y.getText(),statsPanel.w.getText(),statsPanel.h.getText()
+						,statsPanel.xmin.getText(),statsPanel.ymin.getText(),statsPanel.xmax.getText(),statsPanel.ymax.getText()));
+			}
+			if(displayView.controller.getMode()==DisplayController.POLYGON_MODE){
+				List<Point> points = displayModel.polygon;
+				for(int i=0;i<points.size();i++){
+					myTableModel.addTableLineModel(new TableLineModel(filePath,pathPanel.fileName.getText(),pathPanel.fileExtension.getText()
+							,pathPanel.category.getText(),pathPanel.id.getText(),statsPanel.width.getText()
+							,statsPanel.height.getText(),points.get(i).x+"",points.get(i).y+"","0","0"
+							,"0","0","0","0"));
+				}
+				myTableModel.addTableLineModel(new TableLineModel(filePath,pathPanel.fileName.getText(),pathPanel.fileExtension.getText()
+						,pathPanel.category.getText(),pathPanel.id.getText(),statsPanel.width.getText()
+						,statsPanel.height.getText(),points.get(0).x+"",points.get(0).y+"","0","0"
+						,"0","0","0","0"));
+			}
+		}
+	}
+
+	private class RemoveAction extends AbstractAction {
+		private RemoveAction() {
+			super("Supprimer");
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			int[] selection = myJTable.getSelectedRows();
+
+			for(int i = selection.length - 1; i >= 0; i--){
+				myTableModel.removeTableLineModel(selection[i]);
+			}
+		}
+	}
+
 	public static void main(String[] args)
 	{
 		MainFrame self = new MainFrame();
 		self.pack();
 		self.setVisible(true);
 	}
-	
+
 }
