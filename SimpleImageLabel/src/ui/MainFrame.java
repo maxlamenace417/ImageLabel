@@ -64,7 +64,7 @@ public class MainFrame extends JFrame {
 
 	public MainFrame()
 	{	
-		super("Image Label (©Maximilien THERRAS)");
+		super("Image Label (©maxlamenace417 github)");
 
 		this.addWindowListener(new java.awt.event.WindowAdapter()
 		{
